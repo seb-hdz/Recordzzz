@@ -39,6 +39,20 @@ La app queda en [http://localhost:3000](http://localhost:3000).
 | `pnpm typecheck` | TypeScript sin emitir |
 | `pnpm generate:assets` | Regenera iconos/splash PWA desde `brand/` |
 
+## Versión
+
+- **Semver:** campo `version` en `package.json` (bump manual).
+- **Build:** en CI, `{run_number}-{unix_timestamp}` (ej. `3-1728345678`). El `run_id` de Actions queda en el log del job para correlacionar.
+- En la home se muestra `v. 0.1.0 (build …)`; en local se añade ` - DEV`.
+
+## Deploy (GitHub Pages)
+
+Cada push a `main` ejecuta [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) y publica en:
+
+`https://seb-hdz.github.io/Recordzzz/`
+
+En el repo de GitHub: **Settings → Pages → Source: GitHub Actions**.
+
 ## Documentación
 
 - [Esquema de datos](docs/schema.dbml)

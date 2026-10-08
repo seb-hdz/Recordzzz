@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import solidPlugin from "vite-plugin-solid";
@@ -5,7 +6,20 @@ import tailwindcss from "@tailwindcss/vite";
 import generouted from "@generouted/solid-router/plugin";
 import { VitePWA } from "vite-plugin-pwa";
 
+const { version } = JSON.parse(
+  readFileSync(resolve(__dirname, "package.json"), "utf-8")
+) as { version: string };
+
+const isGitHubPages = process.env.GITHUB_PAGES === "true";
+const base = isGitHubPages ? "/Recordzzz/" : "/";
+const buildNumber = process.env.VITE_APP_BUILD_NUMBER ?? "local";
+
 export default defineConfig({
+  base,
+  define: {
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(version),
+    "import.meta.env.VITE_APP_BUILD_NUMBER": JSON.stringify(buildNumber),
+  },
   plugins: [
     tailwindcss(),
     solidPlugin(),
@@ -22,8 +36,8 @@ export default defineConfig({
         name: "Recordzzz",
         short_name: "Recordzzz",
         description: "Gestión y catálogo de colección de grabaciones y medios físicos",
-        start_url: "/",
-        scope: "/",
+        start_url: "./",
+        scope: "./",
         display: "standalone",
         orientation: "portrait-primary",
         background_color: "#0F180F",
@@ -33,25 +47,25 @@ export default defineConfig({
         },
         icons: [
           {
-            src: "/icons/icon-192.png",
+            src: "icons/icon-192.png",
             sizes: "192x192",
             type: "image/png",
             purpose: "any",
           },
           {
-            src: "/icons/icon-512.png",
+            src: "icons/icon-512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "any",
           },
           {
-            src: "/icons/icon-192-maskable.png",
+            src: "icons/icon-192-maskable.png",
             sizes: "192x192",
             type: "image/png",
             purpose: "maskable",
           },
           {
-            src: "/icons/icon-512-maskable.png",
+            src: "icons/icon-512-maskable.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
@@ -62,10 +76,10 @@ export default defineConfig({
             name: "Nuevo registro",
             short_name: "Nuevo",
             description: "Registra un nuevo artículo en la colección",
-            url: "/records/new",
+            url: "./records/new",
             icons: [
               {
-                src: "/icons/shortcut-new.png",
+                src: "icons/shortcut-new.png",
                 sizes: "192x192",
                 type: "image/png",
               },
@@ -75,10 +89,10 @@ export default defineConfig({
             name: "Reportes",
             short_name: "Reportes",
             description: "Visualiza estadísticas de tu colección",
-            url: "/reports",
+            url: "./reports",
             icons: [
               {
-                src: "/icons/shortcut-reports.png",
+                src: "icons/shortcut-reports.png",
                 sizes: "192x192",
                 type: "image/png",
               },
@@ -88,10 +102,10 @@ export default defineConfig({
             name: "Ajustes",
             short_name: "Ajustes",
             description: "Configura temas y copias de seguridad",
-            url: "/settings",
+            url: "./settings",
             icons: [
               {
-                src: "/icons/shortcut-settings.png",
+                src: "icons/shortcut-settings.png",
                 sizes: "192x192",
                 type: "image/png",
               },

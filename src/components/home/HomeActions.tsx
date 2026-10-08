@@ -3,6 +3,7 @@ import CatalogueSvg from "@/assets/icons/catalogue.svg?raw";
 import ItemSvg from "@/assets/icons/package.svg?raw";
 import { For } from "solid-js";
 import { A } from "@solidjs/router";
+import { getAppVersionLabel } from "@/lib/app-version";
 import { cn } from "@/lib/utils";
 
 export const HOME_ACTIONS = {
@@ -60,6 +61,9 @@ export default function HomeActions() {
           )}
         </For>
       </div>
+      <p class="mt-4 text-center text-xs text-white/55 tabular-nums">
+        {getAppVersionLabel()}
+      </p>
     </section>
   );
 }

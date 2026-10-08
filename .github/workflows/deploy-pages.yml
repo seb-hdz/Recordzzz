@@ -1,0 +1,67 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Set build metadata
+        run: |
+          # UI build: run_number + unix timestamp (sequential + when).
+          # Correlate with Actions via run_id in the job log line below.
+          echo "VITE_APP_BUILD_NUMBER=${{ github.run_number }}-$(date -u +%s)" >> "$GITHUB_ENV"
+          echo "Deploy build: run_number=${{ github.run_number }} run_id=${{ github.run_id }} attempt=${{ github.run_attempt }}"
+
+      - name: Build
+        env:
+          GITHUB_PAGES: "true"
+        run: pnpm build
+
+      - name: SPA fallback for GitHub Pages
+        run: cp dist/index.html dist/404.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

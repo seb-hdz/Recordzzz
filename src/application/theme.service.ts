@@ -38,7 +38,7 @@ export function resolveTheme(
 }
 
 function readLocalMode(): ThemeStorageMode {
-  if (typeof localStorage === "undefined") return "auto";
+  if (typeof localStorage === "undefined") return "noom";
   const raw = localStorage.getItem(THEME_MODE_STORAGE_KEY) as ThemeStorageMode | null;
   if (
     raw === "noom" ||
@@ -48,7 +48,7 @@ function readLocalMode(): ThemeStorageMode {
   ) {
     return raw;
   }
-  return "auto";
+  return "noom";
 }
 
 function readLocalAutoDark(): string {

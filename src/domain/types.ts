@@ -90,7 +90,7 @@ export interface AppConfig {
 
 export const DEFAULT_APP_CONFIG: AppConfig = {
   id: "global",
-  themeMode: "auto",
+  themeMode: "noom",
   autoDarkAt: "19:00",
   defaultCurrency: "PEN",
   uiZoom: 100,

@@ -1,0 +1,5 @@
+{
+  "tailwindCSS.experimental.configFile": "src/css/style.css",
+  "tailwindCSS.classAttributes": ["class", "className", "classList"],
+  "tailwindCSS.classFunctions": ["cn", "clsx", "cva"]
+}

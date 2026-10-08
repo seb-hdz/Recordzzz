@@ -1,0 +1,88 @@
+// ENUMS
+Enum item_category {
+  cd
+  vinyl
+  boxset
+  other
+}
+
+Enum item_status {
+  new
+  openbox
+  used
+}
+
+Enum currency {
+  EUR
+  PEN
+  JPY
+  USD
+  CAD
+  AUD
+  GBP
+}
+
+// SKU de catálogo. Puede existir sin ninguna importación.
+// El precio y los impuestos pertenecen al SKU. El costo de envío no se guarda aquí.
+Table items {
+  id integer [primary key, increment]
+
+  name varchar [not null, note: 'Nombre del artículo']
+  categories item_category[] [not null, note: 'Acepta múltiples. Ej: ["cd", "boxset"]']
+  status item_status [not null, note: 'Estado físico del artículo']
+
+  price_currency currency [not null]
+  price_amount_cents integer [not null, note: 'Monto en centavos. Ej: 20034 = 200.34']
+  price_includes_taxes boolean [not null, note: 'true cuando el impuesto es una tasa aplicada sobre el precio']
+  price_tax_amount_cents integer [note: 'Monto de impuesto en centavos. Opcional']
+  price_tax_percentage integer [note: 'Porcentaje de impuesto en puntos base. Ej: 3250 = 32.50%. Opcional']
+
+  purchase_datetime timestamp [note: 'Fecha y hora de compra']
+  photo_urls varchar[] [note: 'Array de strings con las URLs de las fotos']
+  tags varchar[] [note: 'Array de strings con etiquetas. Ej: ["rock", "import"]']
+  barcodes varchar[] [note: 'Identificadores opcionales. Ej: ["012345678905"]']
+
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+}
+
+// Importación / lote. El costo de envío, si existe, pertenece a la wave.
+// Puede guardarse sin envío.
+Table waves {
+  id integer [primary key, increment]
+  name varchar [not null, note: 'Nombre de la importación']
+  shipping_currency currency [note: 'Moneda del envío del lote. Presente solo si hay monto']
+  shipping_amount_cents integer [note: 'Envío total del lote en centavos. Opcional']
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+}
+
+// Membresía M:N. El mismo SKU puede estar en varias waves.
+// Dentro de una wave hay una sola línea por SKU, con cantidad.
+Table wave_items {
+  id integer [primary key, increment]
+  wave_id integer [not null, ref: > waves.id]
+  item_id integer [not null, ref: > items.id]
+  quantity integer [not null, note: 'Instancias de ese SKU en la importación. Mínimo 1']
+
+  indexes {
+    (wave_id, item_id) [unique]
+  }
+}
+
+// Borradores de wizard. Sobreviven al cerrar la app. No forman parte del backup.
+Table drafts {
+  id varchar [primary key, note: 'item | wave']
+  payload json [not null, note: 'Paso actual, respuestas, filtros y, si aplica, el registro ya guardado']
+  updated_at timestamp [not null]
+}
+
+Note {
+  '''
+  Dinero
+  - Precio e impuesto viven en items.
+  - Envío vive en waves. La parte de una línea es shipping_total / sum(quantity) * quantity,
+    calculada siempre desde el registro actual de la wave (no se congela en el item).
+  - Vincular un SKU a una importación ocurre solo al registrar la wave.
+  '''
+}

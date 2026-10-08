@@ -1,0 +1,54 @@
+:root,
+[data-theme="noom"] {
+  color-scheme: light;
+
+  /* Surfaces & Background */
+  --background: #f4faf5;
+  --foreground: #0f180f;
+  --surface: #ffffff;
+  --surface-raised: #eef8f0;
+  --surface-border: #c5e0cb;
+
+  /* Brand Colors */
+  --primary: #429d51;
+  --primary-hover: #368543;
+  --primary-foreground: #ffffff;
+
+  --secondary: #e6f5e9;
+  --secondary-foreground: #0f180f;
+
+  --accent: #d4f5db;
+  --accent-foreground: #0f180f;
+
+  --muted: #e6f5e9;
+  --muted-foreground: #3d5c43;
+
+  /* Form & Interactive */
+  --border: #c5e0cb;
+  --input: #c5e0cb;
+  --ring: #92fba4;
+
+  /* Status Colors */
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --success: #429d51;
+  --success-foreground: #ffffff;
+  --warning: #d97706;
+  --warning-foreground: #ffffff;
+  --info: #2563eb;
+  --info-foreground: #ffffff;
+
+  /* Radii */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(15 24 15 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(15 24 15 / 0.07),
+    0 2px 4px -2px rgb(15 24 15 / 0.07);
+  --shadow-lg: 0 10px 15px -3px rgb(15 24 15 / 0.08),
+    0 4px 6px -4px rgb(15 24 15 / 0.08);
+}

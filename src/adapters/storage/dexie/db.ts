@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from "dexie";
 import type { DraftId } from "@/domain/drafts";
+import type { FxQuote } from "@/domain/fx";
 import { Item, AppConfig, DEFAULT_APP_CONFIG, Wave, WaveItem } from "@/domain/types";
 
 export interface DraftRow {
@@ -14,6 +15,7 @@ export class RecordzzzDatabase extends Dexie {
   waves!: EntityTable<Wave, "id">;
   waveItems!: EntityTable<WaveItem, "id">;
   drafts!: EntityTable<DraftRow, "id">;
+  fxQuotes!: EntityTable<FxQuote, "base">;
 
   constructor() {
     super("recordzzz-db");
@@ -31,6 +33,10 @@ export class RecordzzzDatabase extends Dexie {
       waves: "++id, name, created_at",
       waveItems: "++id, wave_id, item_id, [wave_id+item_id]",
       drafts: "id",
+    });
+
+    this.version(3).stores({
+      fxQuotes: "base",
     });
 
     this.on("populate", async () => {

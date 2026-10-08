@@ -7,6 +7,7 @@ import {
   todayDateInput,
 } from "@/domain/dates";
 import { computeHomeSummary } from "@/domain/home-summary";
+import type { FxQuote } from "@/domain/fx";
 import { centsToDecimal } from "@/domain/money";
 import {
   CURRENCIES,
@@ -16,6 +17,7 @@ import {
   type Item,
   type Wave,
 } from "@/domain/types";
+import { A } from "@/router";
 import { createEffect, createMemo, createSignal, Show } from "solid-js";
 import DatePicker from "../global/DatePicker";
 
@@ -36,6 +38,7 @@ interface SummaryItemProps {
 interface SummaryCardProps {
   value: number;
   label: string;
+  href: "/items" | "/waves";
 }
 
 const RANGE_STORAGE_KEY = "home-summary-date-range";
@@ -99,23 +102,26 @@ function SummaryItem(props: SummaryItemProps) {
 
 function SummaryCard(props: SummaryCardProps) {
   return (
-    <article class="flex flex-col items-end justify-start rounded-3xl bg-surface px-5 pb-2 pt-3 question-shadow">
-      <p class="font-ultra text-4xl text-muted-foreground leading-none">
-        {props.value}
-      </p>
-      <p class="mt-2 max-w-[8.5rem] font-cutive text-sm text-right leading-5">
-        {props.label}
-      </p>
-    </article>
+    <A href={props.href} class="flex min-w-0 flex-1">
+      <article class="flex w-full flex-col items-end justify-start rounded-3xl bg-surface px-5 pb-2 pt-3 question-shadow">
+        <p class="font-ultra text-4xl text-muted-foreground leading-none">
+          {props.value}
+        </p>
+        <p class="mt-2 max-w-[8.5rem] font-cutive text-sm text-right leading-5">
+          {props.label}
+        </p>
+      </article>
+    </A>
   );
 }
 
 export default function HomeSummary() {
-  const { itemService, waveService, configRepo } = useApp();
+  const { itemService, waveService, configRepo, fxService } = useApp();
   const initialRange = loadStoredRange();
 
   const [fromDate, setFromDate] = createSignal(initialRange.from);
   const [toDate, setToDate] = createSignal(initialRange.to);
+  const [fx, setFx] = createSignal<FxQuote | null>(null);
 
   const items = useDexieQuery<Item[]>(() => itemService.getAllItems(), []);
   const waves = useDexieQuery<Wave[]>(() => waveService.getAllWaves(), []);
@@ -131,6 +137,14 @@ export default function HomeSummary() {
     );
   });
 
+  createEffect(() => {
+    const base = config().defaultCurrency;
+    const day = todayDateInput();
+    void fxService.getRates(base, day).then((quote) => {
+      setFx(quote);
+    });
+  });
+
   const summary = createMemo(() =>
     computeHomeSummary({
       items: items(),
@@ -138,6 +152,7 @@ export default function HomeSummary() {
       currency: config().defaultCurrency,
       fromDate: fromDate(),
       toDate: toDate(),
+      fx: fx(),
     })
   );
 
@@ -170,8 +185,14 @@ export default function HomeSummary() {
             Costos totales
           </p>
           <p class="mt-1 font-ultra text-3xl text-muted-foreground leading-none">
-            {formatAmount(totalDisplay())} {currencyMeta().symbol}
+            {formatAmount(totalDisplay())}
+            {summary().converted ? "*" : ""} {currencyMeta().symbol}
           </p>
+          <Show when={summary().converted}>
+            <p class="mt-2 font-cutive text-xs text-muted-foreground">
+              * Conversión aproximada a {currencyMeta().id}
+            </p>
+          </Show>
           <Show when={summary().taxCents > 0 || summary().shippingCents > 0}>
             <hr class="my-3 h-px w-full border-none bg-border" />
             <div class="flex flex-col items-end gap-1.5">
@@ -195,10 +216,12 @@ export default function HomeSummary() {
 
         <div class="flex flex-row gap-4">
           <SummaryCard
+            href="/waves"
             value={summary().waveCount}
             label="Oleadas de importación"
           />
           <SummaryCard
+            href="/items"
             value={summary().itemCount}
             label="Artículos registrados"
           />

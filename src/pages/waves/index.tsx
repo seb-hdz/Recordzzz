@@ -1,47 +1,44 @@
 import ItemsFilterPanel, {
   type ItemsFilters,
 } from "@/components/items/ItemsFilterPanel";
-import { ItemPreviewList } from "@/components/items/ItemPreview";
-import { applyFilters, toListedItem } from "@/components/items/filterItems";
+import { applyWaveFilters, toListedWaves } from "@/components/waves/filterWaves";
+import WavePreviewList from "@/components/waves/WavePreview";
 import CommonHeader from "@/components/ui/CommonHeader";
 import ConfirmDeleteSheet from "@/components/ui/ConfirmDeleteSheet";
 import { useDexieQuery } from "@/adapters/storage/dexie/useDexieQuery";
 import { useApp } from "@/application/context";
 import { todayDateInput } from "@/domain/dates";
-import type { Item } from "@/domain/types";
+import type { Wave, WaveItem } from "@/domain/types";
 import { useNavigate } from "@solidjs/router";
 import { createMemo, createSignal, Show } from "solid-js";
 
-export default function ItemsPage() {
+export default function WavesPage() {
   const navigate = useNavigate();
-  const { itemService } = useApp();
-  const items = useDexieQuery<Item[]>(() => itemService.getAllItems(), []);
-  const [filters, setFilters] = createSignal<ItemsFilters>({
+  const { waveService } = useApp();
+  const waves = useDexieQuery<Wave[]>(() => waveService.getAllWaves(), []);
+  const lines = useDexieQuery<WaveItem[]>(() => waveService.listAllLines(), []);
+  const initialFilters: ItemsFilters = {
     query: "",
     types: [],
-    sort: "a-to-z",
+    sort: "recent",
     fromDate: "2026-01-01",
     toDate: todayDateInput(),
-  });
+  };
+  const [filters, setFilters] = createSignal<ItemsFilters>(initialFilters);
   const [pendingDeleteId, setPendingDeleteId] = createSignal<string | null>(
     null
   );
   const [deleting, setDeleting] = createSignal(false);
 
-  const listed = createMemo(() =>
-    items().flatMap((item) => {
-      const row = toListedItem(item);
-      return row ? [row] : [];
-    })
-  );
-  const visible = createMemo(() => applyFilters(listed(), filters()));
+  const listed = createMemo(() => toListedWaves(waves(), lines()));
+  const visible = createMemo(() => applyWaveFilters(listed(), filters()));
   const pending = () =>
-    listed().find((item) => item.id === pendingDeleteId()) ?? null;
+    listed().find((wave) => wave.id === pendingDeleteId()) ?? null;
 
   const countLabel = () => {
     const count = visible().length;
-    const noun = count === 1 ? "artículo" : "artículos";
-    const scope = count === listed().length ? "todos los" : "los";
+    const noun = count === 1 ? "importación" : "importaciones";
+    const scope = count === listed().length ? "todas las" : "las";
     return { scope, count, noun };
   };
 
@@ -50,7 +47,7 @@ export default function ItemsPage() {
     if (!Number.isInteger(id) || id <= 0 || deleting()) return;
     try {
       setDeleting(true);
-      await itemService.deleteItem(id);
+      await waveService.deleteWave(id);
       setPendingDeleteId(null);
     } finally {
       setDeleting(false);
@@ -59,7 +56,7 @@ export default function ItemsPage() {
 
   return (
     <main class="flex h-dvh flex-col overflow-hidden">
-      <CommonHeader title="Artículos" showBack onBack={() => navigate("/")} />
+      <CommonHeader title="Importaciones" showBack onBack={() => navigate("/")} />
       <p class="shrink-0 bg-ring py-1.5 text-center font-cutive text-sm text-muted-foreground">
         Mostrando {countLabel().scope}{" "}
         <span class="underline underline-offset-3">{countLabel().count}</span>{" "}
@@ -70,28 +67,28 @@ export default function ItemsPage() {
           when={visible().length > 0}
           fallback={
             <p class="px-5 py-8 text-center font-cutive text-base text-muted-foreground">
-              Ningún artículo coincide con los filtros.
+              Ninguna importación coincide con los filtros.
             </p>
           }
         >
-          <ItemPreviewList
-            items={visible()}
-            onEdit={(id) => navigate(`/items/new-item?id=${id}`)}
+          <WavePreviewList
+            waves={visible()}
+            onEdit={(id) => navigate(`/waves/new-wave?id=${id}`)}
             onDelete={setPendingDeleteId}
           />
         </Show>
       </div>
       <ItemsFilterPanel
-        initialFrom="2026-01-01"
-        initialTo={todayDateInput()}
+        hideTypes
+        initial={initialFilters}
         onFiltersChange={setFilters}
       />
       <ConfirmDeleteSheet
         open={pending() != null}
-        title="Eliminar artículo"
+        title="Eliminar importación"
         message={
           pending()
-            ? `¿Eliminar «${pending()!.name}»? También se quitará de las importaciones donde aparece.`
+            ? `¿Eliminar «${pending()!.name}»? Los artículos se conservan.`
             : ""
         }
         confirming={deleting()}

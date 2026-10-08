@@ -1,35 +1,59 @@
-import { JSX } from "solid-js";
+import { JSX, Show } from "solid-js";
 import Badge from "@/components/global/badge";
+import { cn } from "@/lib/utils";
 
 interface CollapsedQuestionProps {
   icon: JSX.Element;
   question: string;
   answer: string | JSX.Element;
   step: number;
+  onClick?: () => void;
 }
 
-export default function CollapsedQuestion(props: CollapsedQuestionProps) {
-  const { icon, question, answer, step } = props;
-
+function CollapsedQuestionBody(props: CollapsedQuestionProps) {
   return (
-    <div class="flex flex-row items-start py-3.5 px-2 border-b-2 border-b-muted">
+    <>
       <div class="relative shrink-0">
-        {icon}
+        {props.icon}
         <Badge
-          text={step.toString()}
+          text={props.step.toString()}
           customClass="absolute bottom-1 -right-1.5"
         />
       </div>
-      <div class="flex min-w-0 flex-1 flex-col gap-[0.125rem] ml-4">
-        <p class="font-ultra tracking-[-2%]">{question}</p>
-        {typeof answer === "string" ? (
-          <p class="font-cutive leading-5 tracking-[-2%] line-clamp-3 text-ellipsis overflow-hidden">
-            {answer}
+      <div class="ml-4 flex min-w-0 flex-1 flex-col gap-[0.125rem]">
+        <p class="font-ultra tracking-[-2%]">{props.question}</p>
+        {typeof props.answer === "string" ? (
+          <p class="overflow-hidden text-ellipsis font-cutive leading-5 tracking-[-2%] line-clamp-3">
+            {props.answer}
           </p>
         ) : (
-          answer
+          props.answer
         )}
       </div>
-    </div>
+    </>
+  );
+}
+
+export default function CollapsedQuestion(props: CollapsedQuestionProps) {
+  const rowClass =
+    "flex w-full flex-row items-start border-b-2 border-b-muted px-2 py-3.5 text-left";
+
+  return (
+    <Show
+      when={props.onClick}
+      fallback={
+        <div class={rowClass}>
+          <CollapsedQuestionBody {...props} />
+        </div>
+      }
+    >
+      <button
+        type="button"
+        class={cn(rowClass, "cursor-pointer")}
+        onClick={() => props.onClick?.()}
+      >
+        <CollapsedQuestionBody {...props} />
+      </button>
+    </Show>
   );
 }

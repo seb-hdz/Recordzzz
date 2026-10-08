@@ -13,8 +13,11 @@ import { DexieConfigRepository } from "@/adapters/storage/dexie/dexie-config.rep
 import { DexieBackupAdapter } from "@/adapters/storage/dexie/dexie-backup.adapter";
 import { DexieWaveRepository } from "@/adapters/storage/dexie/dexie-wave.repository";
 import { DexieDraftRepository } from "@/adapters/storage/dexie/dexie-draft.repository";
+import { DexieFxQuoteRepository } from "@/adapters/storage/dexie/dexie-fx.repository";
+import { HttpFxRateClient } from "@/adapters/http/http-fx.client";
 import { ItemService } from "./item.service";
 import { WaveService } from "./wave.service";
+import { FxService } from "./fx.service";
 import { createThemeService, ThemeService } from "./theme.service";
 
 interface AppContextValue {
@@ -25,6 +28,7 @@ interface AppContextValue {
   waveRepo: WaveRepositoryPort;
   waveService: WaveService;
   draftRepo: DraftRepositoryPort;
+  fxService: FxService;
   themeService: ThemeService;
 }
 
@@ -36,6 +40,10 @@ export const AppProvider: ParentComponent = (props) => {
   const backup = new DexieBackupAdapter();
   const waveRepo = new DexieWaveRepository();
   const draftRepo = new DexieDraftRepository();
+  const fxService = new FxService(
+    new DexieFxQuoteRepository(),
+    new HttpFxRateClient()
+  );
   const itemService = new ItemService(itemRepo);
   const waveService = new WaveService(waveRepo, itemRepo);
   const themeService = createThemeService(configRepo);
@@ -48,6 +56,7 @@ export const AppProvider: ParentComponent = (props) => {
     waveRepo,
     waveService,
     draftRepo,
+    fxService,
     themeService,
   };
 

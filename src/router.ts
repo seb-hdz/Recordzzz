@@ -12,6 +12,7 @@ export type Path =
   | `/records/new`
   | `/reports`
   | `/settings`
+  | `/waves`
   | `/waves/new-wave`
 
 export type Params = {

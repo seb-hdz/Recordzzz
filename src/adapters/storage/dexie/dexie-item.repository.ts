@@ -81,7 +81,10 @@ export class DexieItemRepository implements ItemRepositoryPort {
   }
 
   async delete(id: number): Promise<void> {
-    await db.items.delete(id);
+    await db.transaction("rw", db.items, db.waveItems, async () => {
+      await db.waveItems.where("item_id").equals(id).delete();
+      await db.items.delete(id);
+    });
   }
 
   async count(): Promise<number> {

@@ -17,4 +17,7 @@ export interface WaveRepositoryPort {
   getById(id: number): Promise<Wave | undefined>;
   listAll(): Promise<Wave[]>;
   listLines(waveId: number): Promise<WaveItem[]>;
+  listAllLines(): Promise<WaveItem[]>;
+  update(id: number, input: CreateWaveInput): Promise<void>;
+  delete(id: number): Promise<void>;
 }

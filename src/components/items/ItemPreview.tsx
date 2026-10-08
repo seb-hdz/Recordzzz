@@ -11,9 +11,10 @@ import {
   ITEM_TYPES,
   type ItemTypeKey,
 } from "@/components/wizard/step2/itemTypes";
+import SwipeRevealRow from "@/components/ui/SwipeRevealRow";
 import { CURRENCIES, type Currency, type ItemCategory } from "@/domain/types";
 import { cn } from "@/lib/utils";
-import { For, Show, type JSX } from "solid-js";
+import { createSignal, For, Show, type JSX } from "solid-js";
 
 const TYPE_GREEN_ICONS: Record<ItemTypeKey, string> = {
   vinyl: vinylGreenSvg,
@@ -131,11 +132,16 @@ export default function ItemPreview(props: ItemPreviewProps) {
 }
 
 export interface ItemPreviewListProps {
-  items: ItemPreviewProps[];
+  items: (ItemPreviewProps & { id?: string })[];
   class?: string;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 export function ItemPreviewList(props: ItemPreviewListProps) {
+  const [openId, setOpenId] = createSignal<string | null>(null);
+  const swipeable = () => Boolean(props.onEdit && props.onDelete);
+
   return (
     <ul class={cn("flex flex-col", props.class)}>
       <For each={props.items}>
@@ -144,7 +150,25 @@ export function ItemPreviewList(props: ItemPreviewListProps) {
             <Show when={index() > 0}>
               <hr class="mx-5 h-px border-none bg-secondary" />
             </Show>
-            <ItemPreview {...item} />
+            <Show
+              when={swipeable() && item.id}
+              fallback={<ItemPreview {...item} />}
+            >
+              <SwipeRevealRow
+                open={openId() === item.id}
+                onOpenChange={(open) => setOpenId(open ? item.id! : null)}
+                onEdit={() => {
+                  setOpenId(null);
+                  props.onEdit?.(item.id!);
+                }}
+                onDelete={() => {
+                  setOpenId(null);
+                  props.onDelete?.(item.id!);
+                }}
+              >
+                <ItemPreview {...item} />
+              </SwipeRevealRow>
+            </Show>
           </li>
         )}
       </For>

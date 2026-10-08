@@ -1,6 +1,7 @@
 import DatePicker from "@/components/global/DatePicker";
 import { type ItemTypeKey } from "@/components/wizard/step2/itemTypes";
 import { todayDateInput } from "@/domain/dates";
+import { cn } from "@/lib/utils";
 import { createEffect, createSignal, Show } from "solid-js";
 import SearchControl from "./SearchControl";
 import SortSelector from "./SortSelector";
@@ -19,6 +20,7 @@ export interface ItemsFilterPanelProps {
   initialFrom?: string;
   initialTo?: string;
   initial?: ItemsFilters;
+  hideTypes?: boolean;
   onFiltersChange: (filters: ItemsFilters) => void;
 }
 
@@ -46,7 +48,7 @@ export default function ItemsFilterPanel(props: ItemsFilterPanelProps) {
   createEffect(() => {
     props.onFiltersChange({
       query: searchText().trim(),
-      types: selectedTypes(),
+      types: props.hideTypes ? [] : selectedTypes(),
       sort: sort(),
       fromDate: fromDate(),
       toDate: toDate(),
@@ -85,11 +87,18 @@ export default function ItemsFilterPanel(props: ItemsFilterPanelProps) {
         </div>
       </Show>
       <div class="flex flex-row items-center justify-between gap-2">
-        <TypeFilterSelector
-          selected={selectedTypes}
-          onSelectedChange={setSelectedTypes}
-        />
-        <div class="flex flex-row items-center gap-2">
+        <Show when={!props.hideTypes}>
+          <TypeFilterSelector
+            selected={selectedTypes}
+            onSelectedChange={setSelectedTypes}
+          />
+        </Show>
+        <div
+          class={cn(
+            "flex flex-row items-center gap-2",
+            props.hideTypes && "ml-auto"
+          )}
+        >
           <SortSelector value={sort} onChange={setSort} />
           <SearchControl
             expanded={searchExpanded}

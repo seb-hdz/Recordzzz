@@ -10,7 +10,7 @@ interface WizardHeaderProps {
 
 export default function WizardHeader(props: WizardHeaderProps) {
   return (
-    <header class="bg-surface transition-colors question-shadow">
+    <header class="safe-top bg-surface transition-colors question-shadow">
       <div class="max-w-2xl mx-auto h-full px-4 flex items-center justify-between">
         <div class="flex items-baseline justify-between py-2.5 w-full">
           <Show when={props.showBack}>

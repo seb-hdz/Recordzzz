@@ -1,4 +1,5 @@
 import { isoInDateInputRange } from "@/domain/dates";
+import { toBaseCents, type FxQuote } from "@/domain/fx";
 import type { Currency, Item, Wave } from "@/domain/types";
 
 export interface HomeSummaryTotals {
@@ -12,6 +13,8 @@ export interface HomeSummaryTotals {
   shippingCents: number;
   waveCount: number;
   itemCount: number;
+  /** True when at least one amount was converted from another currency. */
+  converted: boolean;
 }
 
 function itemActivityIso(item: Item): string {
@@ -28,29 +31,53 @@ export function itemSpendCents(item: Item): number {
   return price + (item.price_tax_amount_cents ?? 0);
 }
 
+function convert(
+  amountCents: number,
+  from: Currency,
+  base: Currency,
+  rates: FxQuote["rates"] | null | undefined
+): number | null {
+  return toBaseCents(amountCents, from, base, rates);
+}
+
 export function computeHomeSummary(input: {
   items: Item[];
   waves: Wave[];
   currency: Currency;
   fromDate: string;
   toDate: string;
+  fx?: FxQuote | null;
 }): HomeSummaryTotals {
   const { currency, fromDate, toDate } = input;
+  const rates = input.fx?.base === currency ? input.fx.rates : null;
 
   let totalCents = 0;
   let taxCents = 0;
   let taxEstimated = false;
   let itemCount = 0;
+  let converted = false;
 
   for (const item of input.items) {
     if (!isoInDateInputRange(itemActivityIso(item), fromDate, toDate)) continue;
-    if (item.price_currency !== currency) continue;
-
     itemCount += 1;
-    totalCents += itemSpendCents(item);
 
-    const tax = item.price_tax_amount_cents ?? 0;
-    if (tax > 0) {
+    const spend = convert(
+      itemSpendCents(item),
+      item.price_currency,
+      currency,
+      rates
+    );
+    if (spend == null) continue;
+    if (item.price_currency !== currency) converted = true;
+    totalCents += spend;
+
+    const tax = convert(
+      item.price_tax_amount_cents ?? 0,
+      item.price_currency,
+      currency,
+      rates
+    );
+    if (tax != null && tax > 0) {
       taxCents += tax;
       if (item.price_tax_percentage != null && item.price_tax_percentage > 0) {
         taxEstimated = true;
@@ -66,10 +93,13 @@ export function computeHomeSummary(input: {
     waveCount += 1;
 
     const amount = wave.shipping_amount_cents ?? 0;
-    if (amount > 0 && wave.shipping_currency === currency) {
-      shippingCents += amount;
-      totalCents += amount;
-    }
+    const shippingCurrency = wave.shipping_currency;
+    if (amount <= 0 || !shippingCurrency) continue;
+    const shipping = convert(amount, shippingCurrency, currency, rates);
+    if (shipping == null) continue;
+    if (shippingCurrency !== currency) converted = true;
+    shippingCents += shipping;
+    totalCents += shipping;
   }
 
   return {
@@ -80,5 +110,6 @@ export function computeHomeSummary(input: {
     shippingCents,
     waveCount,
     itemCount,
+    converted,
   };
 }

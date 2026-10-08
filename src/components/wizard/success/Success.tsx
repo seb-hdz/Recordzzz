@@ -213,7 +213,7 @@ export default function Success(props: SuccessProps) {
         props.class
       )}
     >
-      <div class="mx-auto flex min-h-0 w-full max-w-lg flex-1 flex-col items-center justify-center px-6 py-8">
+      <div class="safe-top safe-bottom mx-auto flex min-h-0 w-full max-w-lg flex-1 flex-col items-center justify-center px-6 py-8">
         <div class="animate-success-pop flex shrink-0 flex-col items-center">
           <div class="relative size-36 shrink-0 rounded-full animate-float-drift-a">
             <img

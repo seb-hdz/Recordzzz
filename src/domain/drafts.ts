@@ -32,6 +32,8 @@ export interface ItemSavedSnapshot {
 
 export interface ItemDraft {
   step: ItemWizardStep;
+  /** Set while editing an existing item. Null during creation. */
+  editingId: number | null;
   name: string;
   categories: ItemCategory[];
   status: ItemStatus | null;
@@ -68,6 +70,8 @@ export interface WaveSavedSnapshot {
 
 export interface WaveDraft {
   step: WaveWizardStep;
+  /** Set while editing an existing wave. Null during creation. */
+  editingId: number | null;
   name: string;
   lines: WaveLineDraft[];
   filters: DraftItemFilters;
@@ -82,6 +86,7 @@ export interface WaveDraft {
 export function createItemDraft(): ItemDraft {
   return {
     step: 1,
+    editingId: null,
     name: "",
     categories: [],
     status: null,
@@ -99,6 +104,7 @@ export function createItemDraft(): ItemDraft {
 export function createWaveDraft(): WaveDraft {
   return {
     step: 1,
+    editingId: null,
     name: "",
     lines: [],
     filters: {
